@@ -1,66 +1,202 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Учился писать на php+laravel для коммерческого заказа
+---
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# 🧩 Laravel Blog
 
-## About Laravel
+## 🔧 Основные компоненты
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 1. **Структура проекта**
+```
+laravel-project/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/     # Ваши контроллеры
+│   │   └── Middleware/      # Мидлвары
+│   ├── Models/              # Eloquent модели
+│   └── Services/            # Службы бизнес-логики (если используются)
+├── database/
+│   ├── migrations/          # Миграции БД
+│   ├── seeders/             # Заполнение данными
+│   └── factories/           # Фабрики данных
+├── routes/
+│   ├── api.php              # API маршруты
+│   └── web.php              # Веб-маршруты
+├── config/
+│   └── auth.php             # Настройки аутентификации
+└── resources/
+    └── views/               # Шаблоны (если используется SSR)
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 📦 Модели и миграции
 
-## Learning Laravel
+### `User`
+```php
+class User extends Authenticatable {
+    use HasApiTokens, HasFactory, Notifiable;
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    protected $fillable = ['name', 'email', 'password'];
+}
+```
+- Используется для аутентификации.
+- Поддерживает токены API через `HasApiTokens`.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### `Category`
+```php
+class Category extends Model {
+    protected $fillable = ['title'];
+}
+```
+- Простая модель категории с названием.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### `Course`
+```php
+class Course extends Model {
+    protected $fillable = [
+        'title', 'price', 'students_qty', 'reviews_qty', 'category_id'
+    ];
 
-## Laravel Sponsors
+    public function category() {
+        return $this->belongsTo(Category::class);
+    }
+}
+```
+- Связь с категорией через `belongsTo`.
+- Хранит основную информацию о курсе.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 🚀 API
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Реализованы следующие эндпоинты:
 
-## Contributing
+### GET `/api/courses`
+Возвращает список всех курсов:
+```json
+[
+    {
+        "id": 1,
+        "title": "PHP для начинающих",
+        "price": 4990,
+        "students_qty": 250,
+        "reviews_qty": 35,
+        "category_id": 1
+    }
+]
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### GET `/api/categories`
+Возвращает список категорий:
+```json
+[
+    {
+        "id": 1,
+        "title": "Программирование"
+    },
+    {
+        "id": 2,
+        "title": "Маркетинг"
+    }
+]
+```
 
-## Code of Conduct
+### GET `/api/courses/{id}`
+Возвращает детали курса:
+```json
+{
+    "id": 1,
+    "title": "PHP для начинающих",
+    "price": 4990,
+    "students_qty": 250,
+    "reviews_qty": 35,
+    "category_id": 1,
+    "created_at": "2025-06-01T08:00:00Z"
+}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🔐 Аутентификация и авторизация
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Реализация:
+- Используется **API Tokens** из пакета `laravel/sanctum`.
+- Пользователь получает токен после успешной авторизации:
+```php
+$token = $user->createToken('auth_token')->plainTextToken;
+```
 
-## License
+### Пример запроса:
+```bash
+POST /login
+{
+    "email": "user@example.com",
+    "password": "password"
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Ответ:
+```json
+{
+    "access_token": "1|ABC123XYZ...",
+    "token_type": "Bearer"
+}
+```
+
+Токен передается в заголовке:
+```http
+Authorization: Bearer 1|ABC123XYZ...
+```
+
+---
+
+## 🧪 Тестирование
+
+### Unit-тесты
+- Написаны с использованием PHPUnit.
+- Пример теста:
+```php
+public function test_get_all_courses()
+{
+    $response = $this->get('/api/courses');
+    $response->assertStatus(200);
+}
+```
+
+### Pest (альтернативный фреймворк тестирования)
+- Также поддерживается через `pestphp/pest`.
+- Пример теста:
+```php
+test('get all courses', function () {
+    get('/api/courses')->assertOk();
+});
+```
+
+---
+
+## 🛠 Дополнительно
+
+### Фабрики и Seeder'ы
+- Для удобного заполнения БД при разработке:
+```php
+// CourseFactory.php
+public function definition()
+{
+    return [
+        'title' => fake()->sentence(),
+        'price' => fake()->randomFloat(2, 1000, 10000),
+        'students_qty' => fake()->numberBetween(10, 1000),
+        'reviews_qty' => fake()->numberBetween(1, 100),
+        'category_id' => Category::factory(),
+    ];
+}
+```
+
+### Кастомная аутентификация
+- Вы можете расширить систему через middleware или кастомные guard'ы:
+```php
+Auth::viaRequest('custom-token', function ($request) {
+    return User::where('api_key', $request->token)->first();
+});
+```
+
